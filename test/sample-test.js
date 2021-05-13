@@ -31,7 +31,8 @@ describe("Success Token", function () {
 });
 
 describe("Crowdsale", function () {
-  var CrowdSale, crowdsale, Token, token, cap, investorMinCap, investorHardCap;
+  var CrowdSale, crowdsale, Token, token, cap, investorMinCap, investorHardCap, 
+  openingTime, closingTime;
 
   beforeEach("Crowdsale Deployment", async () => {
     [deployer, wallet, investor1, investor2] = await ethers.getSigners();
@@ -44,12 +45,17 @@ describe("Crowdsale", function () {
     cap = await ethers.utils.parseEther("100.0");
     investorMinCap = await ethers.utils.parseEther("0.0002");
     investorHardCap = await ethers.utils.parseEther("100");
+    openingTime =  Math.floor(new Date().getTime() / 1000) + 60;
+    console.log("Opening Time",openingTime);
+    closingTime = openingTime + 600 ;
     CrowdSale = await ethers.getContractFactory("TokenCrowdSale");
-    crowdsale = await CrowdSale.deploy(500, wallet.address, token.address, cap);
+    crowdsale = await CrowdSale.deploy(500, wallet.address, token.address, cap, openingTime, closingTime);
 
     // transferOwnership to crowdsale
     // await token.transferOwnership(crowdsale.address);
     await token.addMinter(crowdsale.address);
+
+    openingTime+=60;
   });
 
   describe("CrowdSale parameters", async () => {
@@ -215,5 +221,15 @@ describe("Crowdsale", function () {
         expect(contribution).to.equal(value1);
       });
     });
+
+    describe('Time CrowdSale', () => {
+      it('Is openingTime',async() => {
+        const isClosed = await crowdsale.hasClosed();
+        expect(isClosed).to.not.be.false;
+      })
+    })
+    
+
+
   });
 });
