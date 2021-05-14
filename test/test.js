@@ -278,6 +278,38 @@ describe("Crowdsale", function () {
       await expect(crowdsale.claimRefund(investor3.address)).to.be.revertedWith("revert RefundableCrowdsale: not finalized");
     })
   })
+
+
+  describe('crowdsale status', () => {
+    it('owner updates the crowdsale status', async() => {
+      await crowdsale.connect(deployer).setIcoStatus(1);
+      let crowdsaleStatus = await crowdsale.status();
+      expect(crowdsaleStatus).to.equal(1);
+    })
+
+    it('non-owner cannot update the crowdsale status',async()=>{
+      await expect(crowdsale.connect(investor3).setIcoStatus(1)).to.be.revertedWith('revert Ownable: caller is not the owner');
+    })
+
+  })
+
+
+  describe('Finalize minting', async() => {
+    it('minting not finished',async()=>{
+      let value = await ethers.utils.parseEther("30.0");
+      console.log("INVESTOR 2::", investor2.address);
+      let overrides = {
+        value: value,
+      };
+      // await crowdsale.buyTokens(investor3.address, overrides)
+      await crowdsale.buyTokens(investor2.address, overrides);
+      await crowdsale.buyTokens(investor2.address, overrides);
+  
+      await expect(crowdsale.finalize()).to.be.revertedWith('revert FinalizableCrowdsale: not closed');
+    })
+  })
+  
+  
   
 
 
