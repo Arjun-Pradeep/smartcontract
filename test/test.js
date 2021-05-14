@@ -330,6 +330,9 @@ describe("Crowdsale", function () {
       const tokenSaleWallet = await crowdsale.tokenSaleWallet();
       expect(tokenSaleWallet).to.equal(25);
 
+      const tokenDivisions =  Number(reserveWallet) + Number(interestpayout) + Number(teamMemberHRWallet) + Number(companyGeneralFundWallet) + Number(airDropWallet) + Number(tokenSaleWallet);
+      expect(tokenDivisions).to.equal(100);
+
     })
 
   })
