@@ -4,8 +4,12 @@ import "@openzeppelin/contracts/crowdsale/Crowdsale.sol";
 import "@openzeppelin/contracts/crowdsale/emission/MintedCrowdsale.sol";
 import "@openzeppelin/contracts/crowdsale/validation/CappedCrowdsale.sol";
 import "@openzeppelin/contracts/crowdsale/validation/TimedCrowdsale.sol";
+import "@openzeppelin/contracts/crowdsale/validation/WhitelistCrowdsale.sol";
+import "@openzeppelin/contracts/crowdsale/distribution/RefundablePostDeliveryCrowdsale.sol";
+import "@openzeppelin/contracts/crowdsale/distribution/RefundableCrowdsale.sol";
 
-contract TokenCrowdSale is Crowdsale, MintedCrowdsale, CappedCrowdsale, TimedCrowdsale {
+contract TokenCrowdSale is Crowdsale, MintedCrowdsale, CappedCrowdsale, TimedCrowdsale, WhitelistCrowdsale, RefundablePostDeliveryCrowdsale
+{
  
     // Investor Contributions
     uint256 public investorMinCap = 200000000000000; // 0.002 ETH
@@ -13,13 +17,20 @@ contract TokenCrowdSale is Crowdsale, MintedCrowdsale, CappedCrowdsale, TimedCro
 
     mapping(address=>uint256) public contributions;
 
-    constructor(uint256 _rate, address payable _wallet, IERC20 _token, uint256 _cap, uint256 _openingTime, uint256 _closingTime) 
-        Crowdsale(_rate, _wallet, _token)
-        CappedCrowdsale(_cap)
-        TimedCrowdsale(_openingTime, _closingTime)
-        public {
-
-
+    constructor(uint256 _rate,
+     address payable _wallet,
+     IERC20 _token, 
+     uint256 _cap, 
+     uint256 _goal, 
+     uint256 _openingTime, 
+     uint256 _closingTime
+     ) 
+    Crowdsale(_rate, _wallet, _token)
+    CappedCrowdsale(_cap)
+    TimedCrowdsale(_openingTime, _closingTime)
+    RefundableCrowdsale(_goal)
+    public {
+        require(_goal<=_cap);  
     } 
 
     /**
