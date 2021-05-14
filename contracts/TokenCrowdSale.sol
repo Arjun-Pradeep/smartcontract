@@ -1,14 +1,16 @@
 pragma solidity ^0.5.0;
 
 import "@openzeppelin/contracts/crowdsale/Crowdsale.sol";
+import "@openzeppelin/contracts/ownership/Ownable.sol";
 import "@openzeppelin/contracts/crowdsale/emission/MintedCrowdsale.sol";
 import "@openzeppelin/contracts/crowdsale/validation/CappedCrowdsale.sol";
 import "@openzeppelin/contracts/crowdsale/validation/TimedCrowdsale.sol";
 import "@openzeppelin/contracts/crowdsale/validation/WhitelistCrowdsale.sol";
 import "@openzeppelin/contracts/crowdsale/distribution/RefundablePostDeliveryCrowdsale.sol";
 import "@openzeppelin/contracts/crowdsale/distribution/RefundableCrowdsale.sol";
+import "@openzeppelin/contracts/lifecycle/Pausable.sol";
 
-contract TokenCrowdSale is Crowdsale, MintedCrowdsale, CappedCrowdsale, TimedCrowdsale, WhitelistCrowdsale, RefundablePostDeliveryCrowdsale
+contract TokenCrowdSale is Crowdsale, ERC20Mintable, Pausable, Ownable, MintedCrowdsale, CappedCrowdsale, TimedCrowdsale, WhitelistCrowdsale, RefundablePostDeliveryCrowdsale
 {
  
     // Investor Contributions
@@ -16,6 +18,10 @@ contract TokenCrowdSale is Crowdsale, MintedCrowdsale, CappedCrowdsale, TimedCro
     uint256 public investorHardCap = 100000000000000000000; // 100 ETH
 
     mapping(address=>uint256) public contributions;
+
+    enum icoStatus { preIco, ico}
+
+    icoStatus public status = icoStatus.preIco; 
 
     constructor(uint256 _rate,
      address payable _wallet,
@@ -43,5 +49,27 @@ contract TokenCrowdSale is Crowdsale, MintedCrowdsale, CappedCrowdsale, TimedCro
         require(_newContribution >= investorMinCap && _newContribution <= investorHardCap,"Error:WeiAmount");
         contributions[_beneficiary] = _newContribution;
     } 
+
+    /**
+     * For updating the crowdsale status
+     * @param _status Crowdsale status 
+     */
+    function setIcoStatus(uint256 _status) public onlyOwner {
+        if(uint256(icoStatus.preIco) == _status){
+            status = icoStatus.preIco;
+        }
+        else if(uint256(icoStatus.ico) == _status){
+            status = icoStatus.ico;
+        }
+    }
+
+     // @dev finalization task
+    function _finalization() internal {
+        if (goalReached()) {
+            ERC20Mintable.finishMinting();
+            Pausable.unpause();
+        }
+        super._finalization();
+    }
 
 }
