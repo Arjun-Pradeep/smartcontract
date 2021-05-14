@@ -10,60 +10,83 @@ import "@openzeppelin/contracts/crowdsale/distribution/RefundablePostDeliveryCro
 import "@openzeppelin/contracts/crowdsale/distribution/RefundableCrowdsale.sol";
 import "@openzeppelin/contracts/lifecycle/Pausable.sol";
 
-contract TokenCrowdSale is Crowdsale, ERC20Mintable, Pausable, Ownable, MintedCrowdsale, CappedCrowdsale, TimedCrowdsale, WhitelistCrowdsale, RefundablePostDeliveryCrowdsale
+contract TokenCrowdSale is
+    Crowdsale,
+    ERC20Mintable,
+    Pausable,
+    Ownable,
+    MintedCrowdsale,
+    CappedCrowdsale,
+    TimedCrowdsale,
+    WhitelistCrowdsale,
+    RefundablePostDeliveryCrowdsale
 {
- 
+    //Token divisions
+    uint256 public reserveWallet = 30;
+    uint256 public interestpayout = 20;
+    uint256 public teamMemberHRWallet = 10;
+    uint256 public companyGeneralFundWallet = 13;
+    uint256 public airDropWallet = 2;
+    uint256 public tokenSaleWallet = 25;
+
     // Investor Contributions
     uint256 public investorMinCap = 200000000000000; // 0.002 ETH
     uint256 public investorHardCap = 100000000000000000000; // 100 ETH
 
-    mapping(address=>uint256) public contributions;
+    mapping(address => uint256) public contributions;
 
-    enum icoStatus { preIco, ico}
+    enum icoStatus {preIco, ico}
 
-    icoStatus public status = icoStatus.preIco; 
+    icoStatus public status = icoStatus.preIco;
 
-    constructor(uint256 _rate,
-     address payable _wallet,
-     IERC20 _token, 
-     uint256 _cap, 
-     uint256 _goal, 
-     uint256 _openingTime, 
-     uint256 _closingTime
-     ) 
-    Crowdsale(_rate, _wallet, _token)
-    CappedCrowdsale(_cap)
-    TimedCrowdsale(_openingTime, _closingTime)
-    RefundableCrowdsale(_goal)
-    public {
-        require(_goal<=_cap);  
-    } 
+    constructor(
+        uint256 _rate,
+        address payable _wallet,
+        IERC20 _token,
+        uint256 _cap,
+        uint256 _goal,
+        uint256 _openingTime,
+        uint256 _closingTime
+    )
+        public
+        Crowdsale(_rate, _wallet, _token)
+        CappedCrowdsale(_cap)
+        TimedCrowdsale(_openingTime, _closingTime)
+        RefundableCrowdsale(_goal)
+    {
+        require(_goal <= _cap);
+    }
 
     /**
      * @param _beneficiary Address performing the token purchase
      * @param _weiAmount Value in wei involved in the purchase
      */
-    function _preValidatePurchase(address _beneficiary, uint256 _weiAmount) internal {
+    function _preValidatePurchase(address _beneficiary, uint256 _weiAmount)
+        internal
+    {
         super._preValidatePurchase(_beneficiary, _weiAmount);
         uint256 _newContribution = contributions[_beneficiary].add(_weiAmount);
-        require(_newContribution >= investorMinCap && _newContribution <= investorHardCap,"Error:WeiAmount");
+        require(
+            _newContribution >= investorMinCap &&
+                _newContribution <= investorHardCap,
+            "Error:WeiAmount"
+        );
         contributions[_beneficiary] = _newContribution;
-    } 
+    }
 
     /**
      * For updating the crowdsale status
-     * @param _status Crowdsale status 
+     * @param _status Crowdsale status
      */
     function setIcoStatus(uint256 _status) public onlyOwner {
-        if(uint256(icoStatus.preIco) == _status){
+        if (uint256(icoStatus.preIco) == _status) {
             status = icoStatus.preIco;
-        }
-        else if(uint256(icoStatus.ico) == _status){
+        } else if (uint256(icoStatus.ico) == _status) {
             status = icoStatus.ico;
         }
     }
 
-     // @dev finalization task
+    // @dev finalization task
     function _finalization() internal {
         if (goalReached()) {
             ERC20Mintable.finishMinting();
@@ -71,5 +94,4 @@ contract TokenCrowdSale is Crowdsale, ERC20Mintable, Pausable, Ownable, MintedCr
         }
         super._finalization();
     }
-
 }

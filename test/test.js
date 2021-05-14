@@ -309,6 +309,30 @@ describe("Crowdsale", function () {
     })
   })
   
+  describe('Token Divisions', () => {
+    
+    it('correct token divisions',async()=>{
+      const reserveWallet = await crowdsale.reserveWallet();
+      expect(reserveWallet).to.equal(30);
+
+      const interestpayout = await crowdsale.interestpayout();
+      expect(interestpayout).to.equal(20);
+
+      const teamMemberHRWallet = await crowdsale.teamMemberHRWallet();
+      expect(teamMemberHRWallet).to.equal(10);
+
+      const companyGeneralFundWallet = await crowdsale.companyGeneralFundWallet();
+      expect(companyGeneralFundWallet).to.equal(13);
+
+      const airDropWallet = await crowdsale.airDropWallet();
+      expect(airDropWallet).to.equal(2);
+
+      const tokenSaleWallet = await crowdsale.tokenSaleWallet();
+      expect(tokenSaleWallet).to.equal(25);
+
+    })
+
+  })
   
   
 
