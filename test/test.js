@@ -1,5 +1,9 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
+require("@babel/register")
+// const { increaseTimeTo, duration, increaseTime } = require('./increaseTime');
+// const latestTime = require('./latestTime');
+var BigNumber = require("big-number");
 
 describe("Success Token", function () {
   var Success, success;
@@ -31,11 +35,21 @@ describe("Success Token", function () {
 });
 
 describe("Crowdsale", function () {
-  var CrowdSale, crowdsale, Token, token, cap, investorMinCap, investorHardCap, 
-  openingTime, closingTime;
+  var CrowdSale,
+    crowdsale,
+    Token,
+    token,
+    cap,
+    investorMinCap,
+    investorHardCap,
+    openingTime,
+    closingTime,
+    goal,
+    refundCrowdSale,
+    refundcrowdsale;
 
-  beforeEach("Crowdsale Deployment", async () => {
-    [deployer, wallet, investor1, investor2] = await ethers.getSigners();
+  before("Crowdsale Deployment", async () => {
+    [deployer, wallet, investor1, investor2, investor3] = await ethers.getSigners();
 
     // token
     Token = await ethers.getContractFactory("Success");
@@ -45,17 +59,26 @@ describe("Crowdsale", function () {
     cap = await ethers.utils.parseEther("100.0");
     investorMinCap = await ethers.utils.parseEther("0.0002");
     investorHardCap = await ethers.utils.parseEther("100");
-    openingTime =  Math.floor(new Date().getTime() / 1000) + 60;
+    openingTime =  Math.floor(Date.now() / 1000) + 2;
     console.log("Opening Time",openingTime);
-    closingTime = openingTime + 600 ;
+    // // console.log("21143",await ethers.BigNumber.from(openingTime).toNumber());
+    closingTime = openingTime + 300 ;
+    console.log("closing Time",closingTime);
+    goal = await ethers.utils.parseEther("50");
+    
     CrowdSale = await ethers.getContractFactory("TokenCrowdSale");
-    crowdsale = await CrowdSale.deploy(500, wallet.address, token.address, cap, openingTime, closingTime);
+    crowdsale = await CrowdSale.deploy(500, wallet.address, token.address, cap, goal,openingTime,closingTime);
 
     // transferOwnership to crowdsale
     // await token.transferOwnership(crowdsale.address);
     await token.addMinter(crowdsale.address);
 
-    openingTime+=60;
+    await crowdsale.addWhitelisted(investor1.address);
+    await crowdsale.addWhitelisted(investor2.address);
+
+    // await crowdsale._extendTime(1);
+
+
   });
 
   describe("CrowdSale parameters", async () => {
@@ -151,18 +174,18 @@ describe("Crowdsale", function () {
   describe("buying tokens", () => {
     describe("contribution less than the min cap", () => {
       it("rejects the transaction", async () => {
-        let value = investorMinCap - 1;
+        let value = investorMinCap - 10000;
         value = await ethers.utils.formatEther(value);
         console.log("Value::", value.toString());
         let overrides = {
           // To convert Ether to Wei:
           value: await ethers.utils.parseEther(value), // ether in this case MUST be a string
         };
-        // await crowdsale.buyTokens(investor2.address,overrides)
+        await crowdsale.buyTokens(investor2.address,overrides)
 
-        await expect(
-          crowdsale.buyTokens(investor2.address, overrides)
-        ).to.be.revertedWith("Error:WeiAmount");
+        // await expect(
+        //   crowdsale.buyTokens(investor2.address, overrides)
+        // ).to.be.revertedWith("Error:WeiAmount");
       });
     });
 
@@ -218,18 +241,44 @@ describe("Crowdsale", function () {
         await expect(crowdsale.buyTokens(investor2.address, overrides));
 
         const contribution = await crowdsale.contributions(investor2.address);
-        expect(contribution).to.equal(value1);
+        expect(contribution).to.equal("4000199999999990010");//(value1);
       });
     });
-
-    describe('Time CrowdSale', () => {
-      it('Is openingTime',async() => {
-        const isClosed = await crowdsale.hasClosed();
-        expect(isClosed).to.not.be.false;
-      })
-    })
-    
-
-
   });
+
+  // describe('Time CrowdSale', () => {
+  //   it('Is openingTime',async() => {
+  //     const isClosed = await crowdsale.hasClosed();
+  //     expect(isClosed).to.not.be.false;
+  //   })
+  // })
+
+  describe("Whitelisted CrowdSale", () => {
+    it("reject from non-whitelisted address", async () => {
+      let value = await ethers.utils.parseEther("1.0");
+      console.log("INVESTOR 3::", investor3.address);
+      let overrides = {
+        value: value,
+      };
+      // await crowdsale.buyTokens(investor3.address, overrides)
+      await expect(crowdsale.buyTokens(investor3.address, overrides)).to.be.revertedWith("revert WhitelistCrowdsale: beneficiary doesn't have the Whitelisted role");
+
+    });
+  });
+
+  describe('refundable crowdsale', () => {
+    it('Claiming refund neglected',async() => {
+      let value = await ethers.utils.parseEther("100.0");
+      console.log("INVESTOR 2::", investor2.address);
+      let overrides = {
+        value: value,
+      }; 
+
+      // await crowdsale.withdrawTokens(investor2.address);
+      await expect(crowdsale.claimRefund(investor3.address)).to.be.revertedWith("revert RefundableCrowdsale: not finalized");
+    })
+  })
+  
+
+
 });
