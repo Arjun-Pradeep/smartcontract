@@ -17,12 +17,12 @@ async function main() {
   
   console.log("TOKEN CONTRACT ADDRESS :: ", token.address)
   
-  const rate = "500";
+  const rate = "1";
   const wallet = "0x9A1B0ADBB943d3a6d33003B8838A7A530e350E3E"; //1
   const cap = Number(50000000000);
   const goal = Number(50000000000);
-  const openingTime = "1621077982";
-  const closingTime = "1621079982";
+  const openingTime = "1621089000";
+  const closingTime = "1621099000";
   const reserveWalletAddress = "0x2A55Cf377A2cD70F1a82B90b2dfb1cB68c45d8BD";//2
   const interestpayoutAddress = "0xFEa69588b99f46f86710c161A898236BF65a326B";//3
   const teamMemberHRWalletAddress = "0x9A1B0ADBB943d3a6d33003B8838A7A530e350E3E";//4
