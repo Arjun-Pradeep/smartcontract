@@ -1,22 +1,22 @@
-require("@nomiclabs/hardhat-waffle");
+require('@nomiclabs/hardhat-waffle');
+require("@nomiclabs/hardhat-etherscan");
+require('dotenv').config();
+// npx hardhat verify --network ropsten 0x5FbDB2315678afecb367f032d93F642f64180aa3 "Success" "SCS" 18
+// npx hardhat verify --constructor-args scripts/token.js 0xE79dA49b082D21cfD313104D071cb3856C928d71 --network ropsten
 
-// This is a sample Hardhat task. To learn how to create your own go to
-// https://hardhat.org/guides/create-task.html
-// task("accounts", "Prints the list of accounts", async () => {
-//   const accounts = await ethers.getSigners();
+const INFURA_URL = `https://ropsten.infura.io/v3/${process.env.INFURA_ID}`;
 
-//   for (const account of accounts) {
-//     console.log(account.address);
-//   }
-// });
+const PRIVATE_KEY = process.env.PRIVATE_KEY;
 
-// You need to export an object to set up your config
-// Go to https://hardhat.org/config/ to learn more
-
-/**
- * @type import('hardhat/config').HardhatUserConfig
- */
 module.exports = {
   solidity: "0.5.0",
+  networks:{
+    ropsten: {
+      url:INFURA_URL,
+      accounts:[`0x${PRIVATE_KEY}`]
+    }
+  },
+  etherscan: {
+    apiKey: process.env.API_KEY
+  }
 };
-

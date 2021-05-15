@@ -1,6 +1,5 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
-require("@babel/register")
 // const { increaseTimeTo, duration, increaseTime } = require('./increaseTime');
 // const latestTime = require('./latestTime');
 var BigNumber = require("big-number");
