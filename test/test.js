@@ -44,12 +44,10 @@ describe("Crowdsale", function () {
     investorHardCap,
     openingTime,
     closingTime,
-    goal,
-    refundCrowdSale,
-    refundcrowdsale;
+    goal
 
   before("Crowdsale Deployment", async () => {
-    [deployer, wallet, investor1, investor2, investor3] = await ethers.getSigners();
+    [deployer, wallet, investor1, investor2, investor3,reserveWalletAddress,interestpayoutAddress,teamMemberHRWalletAddress,companyGeneralFundWalletAddress,airDropWalletAddress ] = await ethers.getSigners();
 
     // token
     Token = await ethers.getContractFactory("Success");
@@ -67,7 +65,8 @@ describe("Crowdsale", function () {
     goal = await ethers.utils.parseEther("50");
     
     CrowdSale = await ethers.getContractFactory("TokenCrowdSale");
-    crowdsale = await CrowdSale.deploy(500, wallet.address, token.address, cap, goal,openingTime,closingTime);
+    crowdsale = await CrowdSale.deploy(500, wallet.address, token.address, cap, goal,openingTime,closingTime,
+      reserveWalletAddress.address,interestpayoutAddress.address,teamMemberHRWalletAddress.address,companyGeneralFundWalletAddress.address,airDropWalletAddress.address);
 
     // transferOwnership to crowdsale
     // await token.transferOwnership(crowdsale.address);
@@ -337,6 +336,58 @@ describe("Crowdsale", function () {
 
   })
   
+  describe('when goal reached', () => {
+    
+    before("Crowdsale Deployment", async () => {
+      [deployer, wallet, investor1, investor2, investor3,reserveWalletAddress,interestpayoutAddress,teamMemberHRWalletAddress,companyGeneralFundWalletAddress,airDropWalletAddress ] = await ethers.getSigners();
+  
+      // token
+      Token = await ethers.getContractFactory("Success");
+      token = await Token.deploy("Success", "SCS", 18);
+  
+      // crowdsale
+      cap = await ethers.utils.parseEther("100.0");
+      investorMinCap = await ethers.utils.parseEther("0.0002");
+      investorHardCap = await ethers.utils.parseEther("100");
+      openingTime =  Math.floor(Date.now() / 1000)+21;
+      console.log("Opening Time",openingTime);
+      // // console.log("21143",await ethers.BigNumber.from(openingTime).toNumber());
+      closingTime = openingTime + 2;
+      console.log("closing Time",closingTime);
+      goal = await ethers.utils.parseEther("50");
+      
+      CrowdSale = await ethers.getContractFactory("TokenCrowdSale");
+      crowdsale = await CrowdSale.deploy(500, wallet.address, token.address, cap, goal,openingTime,closingTime,
+        reserveWalletAddress.address,interestpayoutAddress.address,teamMemberHRWalletAddress.address,companyGeneralFundWalletAddress.address,airDropWalletAddress.address);
+  
+      // transferOwnership to crowdsale
+      // await token.transferOwnership(crowdsale.address);
+      await token.addMinter(crowdsale.address);
+  
+      await crowdsale.addWhitelisted(investor1.address);
+      await crowdsale.addWhitelisted(investor2.address);
+  
+      // await crowdsale._extendTime(1);
+  
+  
+    });
+
+    it('goal reached', async()=>{
+      
+      await crowdsale.finalize();
+      await crowdsale.goalReached();
+      await crowdsale.finishMinting();
+
+
+  
+      let totalSupply = await token.totalSupply();
+      totalSupply = totalSupply.toString();
+      console.log("TOTAL SUPPLY::",totalSupply);
+      
+
+    })
+
+  })
   
 
 
