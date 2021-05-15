@@ -2,8 +2,10 @@
 
 >git clone https://github.com/Arjun-Pradeep/smartcontract.git
 <br>
+
 >cd smartcontract
 <br>
+
 >npm i --save
 
 ### 2. Create a .env file and add the Infura Key, PrivateKey & ropsten API key
